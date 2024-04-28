@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 
@@ -78,10 +77,10 @@ public class PdfGenerator {
         // Lines
 
         for(var line: payslip.getLines())  {
-            double modelPayment = PageTokenFactorUtil.getTokenFactor(line.getPagename()) * line.getTokens() * payslip.getTRM();
+            double modelPayment = PageTokenFactorUtil.getTokenFactor(line.website()) * line.tokens() * payslip.getTRM();
             table
-                    .addCell(new Paragraph(line.getPagename()).setTextAlignment(TextAlignment.LEFT))
-                    .addCell(String.format("%d", line.getTokens()))
+                    .addCell(new Paragraph(line.website().toString()).setTextAlignment(TextAlignment.LEFT))
+                    .addCell(String.format("%d", line.tokens()))
                     .addCell(paymentFormatter.format(modelPayment))
                     .addCell("")
                     .addCell("");

@@ -3,6 +3,7 @@ package dk.studiosw.payslipgenerator.pdf;
 import dk.studiosw.payslipgenerator.PayslipgeneratorApplication;
 import dk.studiosw.payslipgenerator.dao.PayslipLineVO;
 import dk.studiosw.payslipgenerator.dao.PayslipVO;
+import dk.studiosw.payslipgenerator.dao.Website;
 import dk.studiosw.payslipgenerator.pdfgenerator.PdfGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +32,8 @@ class PdfGeneratorTest {
                 null,
                 LocalDate.now());
 
-        payslip.addLine(new PayslipLineVO("Chaturbate", 3437));
-        payslip.addLine(new PayslipLineVO("cam4", 310));
+        payslip.addLine(new PayslipLineVO(Website.Chaturbate, 3437));
+        payslip.addLine(new PayslipLineVO(Website.Cam4, 310));
         pdfGenerator.generate("test.pdf", payslip);
 
     }

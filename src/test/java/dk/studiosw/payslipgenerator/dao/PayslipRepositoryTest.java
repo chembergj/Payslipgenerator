@@ -31,7 +31,7 @@ class PayslipRepositoryTest {
 
         assertNotNull(payslip);
 
-        assertEquals(TestConstants.FULL_NAME_MISS_TRIAL, payslip.getFullname());
+        assertEquals(TestConstants.NAME_MODEL_WITH_CB_AND_SC, payslip.getFullname());
         assertEquals(LocalDate.of(2024, 3, 11), payslip.getFromDate());
         assertEquals(LocalDate.of(2024, 3, 18), payslip.getToDate());
         assertEquals(65, payslip.getPercentage());
@@ -39,12 +39,18 @@ class PayslipRepositoryTest {
 
         assertEquals(2, payslip.getLines().size());
 
-        var cb = payslip.getLines().stream().filter(l -> l.getPagename().equals("Chaturbate")).findAny();
+        var cb = payslip.getLines().stream().filter(l -> l.website() == Website.Chaturbate).findAny();
         assertTrue(cb.isPresent());
-        assertEquals(cb.get().getTokens(), 506);
+        assertEquals(cb.get().tokens(), 461);
 
-        var sc = payslip.getLines().stream().filter(l -> l.getPagename().equals("Stripchat")).findAny();
+        var sc = payslip.getLines().stream().filter(l -> l.website() == Website.Stripchat).findAny();
         assertTrue(sc.isPresent());
-        assertEquals(sc.get().getTokens(), 10);
+        assertEquals(sc.get().tokens(), 162);
+    }
+
+    @Test
+    void canGetModelsWithEarningPeriod() {
+        var models = repo.getModelsWithEarningsInPeriod(LocalDate.of(2024, 4, 11), LocalDate.of(2024, 4, 18));
+        assertEquals(2, models.size());
     }
 }

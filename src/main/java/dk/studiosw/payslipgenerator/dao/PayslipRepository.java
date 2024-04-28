@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,16 +30,14 @@ public class PayslipRepository {
                              resultSet.getDate("CalculationDate").toLocalDate());
                  }, from, to, modelId);
 
-        var lines = jdbcTemplate.query("select sum(me.noOfUnits) as sumOfNoOfUnits, ma.Website from modelearnings me " +
+        var lines = jdbcTemplate.query("select me.noOfUnits as noOfUnits, ma.Website from modelearnings me " +
                  "inner join modelaccounts ma on ma.Id = me.modelaccountsId " +
-                 "inner join modelearningperiods mep on mep.modelId=ma.modelsId " +
-                 "inner join earningperiods ep on mep.earningperiodId = ep.Id " +
-                 "where mep.Id = ? and ep.fromDate <= me.date and me.date <= ep.toDate " +
-                 "group by ma.Website",
+                 "inner join modelearningperiods mep on me.ModelEarningPeriodId=mep.Id " +
+                 "where mep.Id = ? ",
                 (resultSet, rowNum) -> {
                      return new PayslipLineVO(
-                             resultSet.getString("Website"),
-                             resultSet.getInt("sumOfNoOfUnits")
+                             Website.fromDbName(resultSet.getString("Website")),
+                             resultSet.getInt("noOfUnits")
                      );
                  },
                 payslip.getModelEarningPeriodId()
@@ -47,5 +46,13 @@ public class PayslipRepository {
         payslip.addAllLines(lines);
 
         return payslip;
+    }
+
+    public List<ModelVO> getModelsWithEarningsInPeriod(LocalDate from, LocalDate to) {
+        return jdbcTemplate.query(
+                "select models.Id, models.Name, models.Active from models " +
+                "inner join modelearningperiods mep on models.Id=mep.modelId " +
+                "inner join earningperiods ep on mep.earningperiodId = ep.Id " +
+                "where FromDate = ? and ToDate = ?", EarningsRepository.ModelVORowMapper(), from, to);
     }
 }
