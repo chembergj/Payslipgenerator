@@ -1,6 +1,7 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
 const client = require('./client');
+const { v4: uuidv4 } = require('uuid');
 import { useState } from 'react';
 
 class App extends React.Component {
@@ -9,11 +10,25 @@ class App extends React.Component {
 		super(props);
 		this.state = { earningperiods: [], modelearningperiods: [] };
 		this.handleEarningPeriodChange = this.handleEarningPeriodChange.bind(this);
+		this.handleEarningChanged = this.handleEarningChanged.bind(this);
 	}
+
+    addMissingModelEarningGuids(modelearningperiods) {
+
+        modelearningperiods.forEach(mep => {
+            mep.modelEarnings.forEach(modelearning => {
+                if(!modelearning.id) {
+                    modelearning.id = uuidv4();
+                }
+            });
+        });
+
+        return modelearningperiods;
+    }
 
     getModelEarningPeriods(periodId) {
 	    client({method: 'GET', path: '/api/modelearningperiods?earningPeriodId=' + periodId}).done(response => {
-            this.setState({selectedEarningPeriod: periodId, modelearningperiods: response.entity });
+            this.setState({selectedEarningPeriod: periodId, modelearningperiods: this.addMissingModelEarningGuids(response.entity) });
         });
     }
 
@@ -30,14 +45,25 @@ class App extends React.Component {
         this.getModelEarningPeriods(event.target.value);
 	}
 
+    handleSaveClick(modelearningperiods) {
+        var periods = this.state.modelearningperiods;
+         client({method: 'POST', path: '/api/modelearningperiods', entity: periods, headers: {'Content-Type': 'application/json'}}).done(response => {
+            getElementById("status").setValue(response);
+                });
+    }
 
+    handleEarningChanged(modelearningperiods) {
+        this.setState({modelearningperiods: modelearningperiods});
+    }
 
 	render() {
 
     	return (
     	    <>
 			    <EarningPeriodListSelector earningperiods={this.state.earningperiods} value={this.state.selectedEarningPeriod} onChange={this.handleEarningPeriodChange}/>
-    			<ModelEarningPeriodTable modelearningperiods={this.state.modelearningperiods}  />
+   			    <ModelEarningPeriodTable modelearningperiods={this.state.modelearningperiods}  onEarningChanged={this.handleEarningChanged}  />
+    			<input type="button" onClick={() => this.handleSaveClick(this.state.modelearningperiods)} value="Save"/>
+    			<textarea id="status"/>
             </>
 		)
 	}
@@ -45,7 +71,17 @@ class App extends React.Component {
 
 class ModelEarningPeriodTable extends React.Component{
 
+    inputChangedHandler = (modelearningperiods, modelEarningPeriod, modelEarning, event) => {
 
+        const changedModelEarning = { ...modelEarning, noOfUnits: event.target.value };
+        const originalModelEarningPeriod = modelearningperiods.find(mep => mep.id == modelEarningPeriod.id);
+        const indexOfModelEarningToChange = originalModelEarningPeriod.modelEarnings.findIndex(me => me.id === modelEarning.id);
+        const changedModelEarningPeriod = { ...originalModelEarningPeriod, modelEarnings: originalModelEarningPeriod.modelEarnings.with(indexOfModelEarningToChange, changedModelEarning) };
+
+        const indexOfModelEarningPeriodToChange = modelearningperiods.findIndex(mep => mep.id === changedModelEarningPeriod.id);
+        const changedModelEarningPeriods = modelearningperiods.with(indexOfModelEarningPeriodToChange, changedModelEarningPeriod);
+        this.props.onEarningChanged(changedModelEarningPeriods);
+    }
 
 	render() {
 	    const maxNoModelAccounts = Math.max(...this.props.modelearningperiods.map(mep => mep.modelEarnings.length), 0);
@@ -55,13 +91,13 @@ class ModelEarningPeriodTable extends React.Component{
             const remainingColumns = noOfColumns - mep.modelEarnings.length * 3;
             return (
                 <React.Fragment key={index}>
-                    <tr id={mep.id}><td colSpan={noOfColumns}>{mep.modelName}&nbsp;{mep.percentage}%</td></tr>
+                    <tr id={mep.id}><td colSpan={noOfColumns}>{mep.modelName}&nbsp;{mep.percentage}%<input name={"mep_" + index} type="hidden" value={mep.id}/></td></tr>
                      <tr>
                         {mep.modelEarnings.sort((a, b) => a.website > b.website ? 1 : -1).map((me, meIndex) => (
-                            <React.Fragment key={meIndex}>
+                            <React.Fragment key={me.id}>
                                 <td>{me.website}</td>
                                 <td>{me.modelUserName}</td>
-                                <td><input value={me.noOfUnits}/></td>
+                                <td><input name={me.id} value={me.noOfUnits} onChange={(event)=>this.inputChangedHandler(this.props.modelearningperiods, mep, me, event)}/></td>
                             </React.Fragment>
                         ))}
                         {remainingColumns > 0 && <td colSpan={remainingColumns}></td>}
