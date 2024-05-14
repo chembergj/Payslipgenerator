@@ -78,4 +78,16 @@ public class EarningsRepository {
                 resultSet.getString("Name"),
                 resultSet.getBoolean("Active"));
     }
+
+    public void insertOrUpdateModelEarnings(List<ModelEarningPeriodVO> modelEarningPeriods) {
+        modelEarningPeriods.forEach(mep ->
+            mep.modelEarnings().forEach(me ->
+                    jdbcTemplate.update("INSERT INTO modelearnings (Id, modelearningperiodsId, modelaccountsId, noOfUnits)  VALUES (?,?,?,?)"
+                            + " ON DUPLICATE KEY UPDATE noOfUnits=?",
+                            me.id(),
+                            me.modelEarningPeriodId(),
+                            me.modelAccountId(),
+                            me.noOfUnits(),
+                            me.noOfUnits())));
+    }
 }

@@ -12,8 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.io.FileNotFoundException;
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest(classes = PayslipgeneratorApplication.class)
 class PdfGeneratorTest {
 
