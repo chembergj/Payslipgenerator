@@ -6,8 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -51,7 +49,7 @@ public class EarningsRepository {
 
         var earnings = jdbcTemplate.query("select me.Id, ma.Id as modelAccountId, ma.Username, ma.Website, me.noOfUnits, mep.Id ModelEarningPeriodId from modelearningperiods mep " +
                 "inner join modelaccounts ma on mep.modelId=ma.modelsId " +
-                "left join modelearnings me on me.ModelAccountsId=ma.Id " +
+                "left join modelearnings me on me.ModelAccountsId=ma.Id and me.ModelEarningPeriodId=mep.Id " +
                 "where mep.earningperiodId=?"
                 ,
                 (rs, rowNum) -> new ModelEarningVO(
@@ -82,7 +80,7 @@ public class EarningsRepository {
     public void insertOrUpdateModelEarnings(List<ModelEarningPeriodVO> modelEarningPeriods) {
         modelEarningPeriods.forEach(mep ->
             mep.modelEarnings().forEach(me ->
-                    jdbcTemplate.update("INSERT INTO modelearnings (Id, modelearningperiodsId, modelaccountsId, noOfUnits)  VALUES (?,?,?,?)"
+                    jdbcTemplate.update("INSERT INTO modelearnings (Id, ModelEarningPeriodId, modelaccountsId, noOfUnits)  VALUES (?,?,?,?)"
                             + " ON DUPLICATE KEY UPDATE noOfUnits=?",
                             me.id(),
                             me.modelEarningPeriodId(),

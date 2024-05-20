@@ -66,7 +66,12 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
         modelEarningPeriods.get(0).modelEarnings().set(0,
             modelEarningPeriods.get(0).modelEarnings().get(0).withNoOfUnits(4711.0));
 
-        repo.insertOrUpdateModelEarnings(modelEarningPeriods);
+        var mepsWithoutEmptyEarnings = modelEarningPeriods.stream().map(mep -> {
+            var existingEarnings = mep.modelEarnings().stream().filter(me -> me.id() != null).toList();
+            return mep.withModelEarnings(existingEarnings);
+        }).toList();
+
+        repo.insertOrUpdateModelEarnings(mepsWithoutEmptyEarnings);
 
         // ACT
         var newModelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"));

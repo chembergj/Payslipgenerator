@@ -48,8 +48,13 @@ class App extends React.Component {
     handleSaveClick(modelearningperiods) {
         var periods = this.state.modelearningperiods;
          client({method: 'POST', path: '/api/modelearningperiods', entity: periods, headers: {'Content-Type': 'application/json'}}).done(response => {
-            getElementById("status").setValue(response);
+            document.getElementById("status").value = response.status.code + ": " + response.status.text;
                 });
+    }
+
+    handleGetAsPDFClick(modelearningperiods) {
+        var periods = this.state.selectedEarningPeriod;
+        window.location.href = '/api/pdf?earningPeriodId=' + this.state.selectedEarningPeriod;
     }
 
     handleEarningChanged(modelearningperiods) {
@@ -64,6 +69,7 @@ class App extends React.Component {
    			    <ModelEarningPeriodTable modelearningperiods={this.state.modelearningperiods}  onEarningChanged={this.handleEarningChanged}  />
     			<input type="button" onClick={() => this.handleSaveClick(this.state.modelearningperiods)} value="Save"/>
     			<textarea id="status"/>
+    			<input type="button" onClick={() => this.handleGetAsPDFClick(this.state.modelearningperiods)} value="Get PDF"/>
             </>
 		)
 	}

@@ -10,6 +10,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,12 +25,12 @@ class PayslipRepositoryTest {
     @Test
     public void testGetPayslip() {
 
-        // ACT
-        PayslipVO payslip = repo.getPayslip(LocalDate.of(2024, 3, 11), LocalDate.of(2024, 3, 18), TestConstants.MODEL_ID_MISS_TRIAL);
+        PayslipVO payslip = repo.getPayslip(UUID.fromString("d9eeca3f-81d6-49d3-98cd-25d026cca33b"));
 
         // ASSERT
 
         assertNotNull(payslip);
+        // ACT
 
         assertEquals(TestConstants.NAME_MODEL_WITH_CB_AND_SC, payslip.getFullname());
         assertEquals(LocalDate.of(2024, 3, 11), payslip.getFromDate());
@@ -49,8 +50,8 @@ class PayslipRepositoryTest {
     }
 
     @Test
-    void canGetModelsWithEarningPeriod() {
-        var models = repo.getModelsWithEarningsInPeriod(LocalDate.of(2024, 4, 11), LocalDate.of(2024, 4, 18));
+    void canGetModelEarningPeriodsWithEarnings() {
+        var models = repo.getModelEarningPeriodsWithEarningsInPeriod(UUID.fromString("dac91a67-0c3b-43fd-8b0c-5e689a56133a"));
         assertEquals(2, models.size());
     }
 }

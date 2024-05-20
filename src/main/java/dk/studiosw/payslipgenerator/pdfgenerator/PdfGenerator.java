@@ -18,9 +18,7 @@ import dk.studiosw.payslipgenerator.PageTokenFactorUtil;
 import dk.studiosw.payslipgenerator.dao.PayslipVO;
 import org.springframework.stereotype.Service;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 
@@ -31,7 +29,11 @@ public class PdfGenerator {
     private final static DecimalFormat paymentFormatter = new DecimalFormat("$#,###,###,##0");
 
     public void generate(String filename, PayslipVO payslip) throws FileNotFoundException {
-        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(filename));
+        generate(new FileOutputStream(filename), payslip);
+    }
+
+    public void generate(OutputStream os, PayslipVO payslip) {
+        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(os));
         Document doc = new Document(pdfDoc);
 
         InputStream is = getClass().getResourceAsStream("/headerlogo.png");
