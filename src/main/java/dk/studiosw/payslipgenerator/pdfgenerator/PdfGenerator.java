@@ -79,7 +79,7 @@ public class PdfGenerator {
         // Lines
 
         for(var line: payslip.getLines())  {
-            double modelPayment = PageTokenFactorUtil.getTokenFactor(line.website()) * line.tokens() * payslip.getTRM();
+            double modelPayment = PageTokenFactorUtil.getTokenFactor(line.website()) * line.tokens() * payslip.getTRM() * payslip.getPercentage() / 100.0d;
             table
                     .addCell(new Paragraph(line.website().toString()).setTextAlignment(TextAlignment.LEFT))
                     .addCell(String.format("%d", line.tokens()))
