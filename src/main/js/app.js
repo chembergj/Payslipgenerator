@@ -3,6 +3,11 @@ const ReactDOM = require('react-dom');
 const client = require('./client');
 const { v4: uuidv4 } = require('uuid');
 import { useState } from 'react';
+import Nav from 'react-bootstrap/Nav';
+
+// Importing the Bootstrap CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 class App extends React.Component {
 
@@ -65,6 +70,28 @@ class App extends React.Component {
 
     	return (
     	    <>
+
+                <Nav
+                  activeKey="/home"
+                  onSelect={(selectedKey) => alert(`selected ${selectedKey}`)}
+                >
+                  <Nav.Item>
+                    <Nav.Link href="/home">Active</Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item>
+                    <Nav.Link eventKey="link-1">Link</Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item>
+                    <Nav.Link eventKey="link-2">Link</Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item>
+                    <Nav.Link eventKey="disabled" disabled>
+                      Disabled
+                    </Nav.Link>
+                  </Nav.Item>
+                </Nav>
+              
+
 			    <EarningPeriodListSelector earningperiods={this.state.earningperiods} value={this.state.selectedEarningPeriod} onChange={this.handleEarningPeriodChange}/>
    			    <ModelEarningPeriodTable modelearningperiods={this.state.modelearningperiods}  onEarningChanged={this.handleEarningChanged}  />
     			<input type="button" onClick={() => this.handleSaveClick(this.state.modelearningperiods)} value="Save"/>

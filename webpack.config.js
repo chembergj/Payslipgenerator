@@ -1,13 +1,14 @@
 var path = require('path');
+var autoprefixer = require('autoprefixer')
 
 module.exports = {
     entry: './src/main/js/app.js',
-    devtool: 'sourcemaps',
+    devtool: 'eval-source-map',
     cache: true,
     mode: 'development',
     output: {
         path: __dirname,
-        filename: './src/main/resources/static/built/bundle.js'
+        filename: 'bundle.js'
     },
     module: {
         rules: [
@@ -20,7 +21,23 @@ module.exports = {
                         presets: ["@babel/preset-env", "@babel/preset-react"]
                     }
                 }]
-            }
+            },
+             {
+                test: /\.css$/,
+                use: [
+                    'style-loader',
+                    'css-loader'
+                ]
+            },
+            {
+                    test: /\.less$/i,
+                    use: [
+                      // compiles Less to CSS
+                      "style-loader",
+                      "css-loader",
+                      "less-loader",
+                    ],
+                  }
         ]
     }
 };
