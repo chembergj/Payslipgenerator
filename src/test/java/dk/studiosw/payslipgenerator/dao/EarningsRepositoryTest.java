@@ -52,7 +52,7 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
 
     @Test
     public void testGetModelEarningPeriods() {
-        var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"));
+        var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), false);
         assertNotNull(modelEarningPeriods);
         assertEquals(2, modelEarningPeriods.size());
         assertEquals("Model with C4 only", modelEarningPeriods.get(0).modelName());
@@ -62,7 +62,7 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
     @Test
     public void insertOrUpdateModelEarnings() {
         // ARRANGE
-        var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"));
+        var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), false);
         modelEarningPeriods.get(0).modelEarnings().set(0,
             modelEarningPeriods.get(0).modelEarnings().get(0).withNoOfUnits(4711.0));
 
@@ -74,7 +74,7 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
         repo.insertOrUpdateModelEarnings(mepsWithoutEmptyEarnings);
 
         // ACT
-        var newModelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"));
+        var newModelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), false);
         assertEquals(4711.0, newModelEarningPeriods.get(0).modelEarnings().get(0).noOfUnits());
     }
 }

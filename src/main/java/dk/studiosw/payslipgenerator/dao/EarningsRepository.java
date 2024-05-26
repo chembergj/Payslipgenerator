@@ -31,7 +31,7 @@ public class EarningsRepository {
                 );
     }
 
-    public List<ModelEarningPeriodVO> getModelEarningPeriods(UUID earningPeriodId) {
+    public List<ModelEarningPeriodVO> getModelEarningPeriods(UUID earningPeriodId, Boolean excludeEarnings) {
         var mapIdToModelEarningPeriods = jdbcTemplate.query(
                 "select mep.Id, mep.earningperiodId, mep.Percentage, mep.modelId, models.Name from modelearningperiods mep " +
                         "inner join models on mep.modelId = models.Id " +
@@ -47,19 +47,22 @@ public class EarningsRepository {
                 earningPeriodId
         ).stream().collect(Collectors.toMap(ModelEarningPeriodVO::id, Function.identity()));
 
-        var earnings = jdbcTemplate.query("select me.Id, ma.Id as modelAccountId, ma.Username, ma.Website, me.noOfUnits, mep.Id ModelEarningPeriodId from modelearningperiods mep " +
-                "inner join modelaccounts ma on mep.modelId=ma.modelsId " +
-                "left join modelearnings me on me.ModelAccountsId=ma.Id and me.ModelEarningPeriodId=mep.Id " +
-                "where mep.earningperiodId=?"
-                ,
-                (rs, rowNum) -> new ModelEarningVO(
-                        Utils.UUIDOrNull(rs.getString("Id")),
-                        Utils.UUIDOrNull(rs.getString("modelAccountId")),
-                        rs.getString("Username"),
-                        Website.fromDbName(rs.getString("Website")),
-                        rs.getDouble("noOfUnits"),
-                        Utils.UUIDOrNull(rs.getString("ModelEarningPeriodId"))), earningPeriodId);
-        earnings.forEach(e -> mapIdToModelEarningPeriods.get(e.modelEarningPeriodId()).modelEarnings().add(e));
+        if(excludeEarnings != null && !excludeEarnings.booleanValue()) {
+            var earnings = jdbcTemplate.query("select me.Id, ma.Id as modelAccountId, ma.Username, ma.Website, me.noOfUnits, mep.Id ModelEarningPeriodId from modelearningperiods mep " +
+                            "inner join modelaccounts ma on mep.modelId=ma.modelsId " +
+                            "left join modelearnings me on me.ModelAccountsId=ma.Id and me.ModelEarningPeriodId=mep.Id " +
+                            "where mep.earningperiodId=?"
+                    ,
+                    (rs, rowNum) -> new ModelEarningVO(
+                            Utils.UUIDOrNull(rs.getString("Id")),
+                            Utils.UUIDOrNull(rs.getString("modelAccountId")),
+                            rs.getString("Username"),
+                            Website.fromDbName(rs.getString("Website")),
+                            rs.getDouble("noOfUnits"),
+                            Utils.UUIDOrNull(rs.getString("ModelEarningPeriodId"))), earningPeriodId);
+            earnings.forEach(e -> mapIdToModelEarningPeriods.get(e.modelEarningPeriodId()).modelEarnings().add(e));
+        }
+
         return new LinkedList<>(mapIdToModelEarningPeriods.values());
     }
 
