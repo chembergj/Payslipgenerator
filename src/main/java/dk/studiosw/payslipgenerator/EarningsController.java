@@ -43,7 +43,7 @@ public class EarningsController {
     }
 
     @GetMapping("api/modelearningperiods")
-    Collection<ModelEarningPeriodVO> getModelEarningPeriods(@RequestParam UUID earningPeriodId, @RequestParam(required = false) Boolean excludeEarnings) {
+    Collection<ModelEarningPeriodVO> getModelEarningPeriods(@RequestParam UUID earningPeriodId, @RequestParam(required = false, defaultValue  = "false") boolean excludeEarnings) {
         return repo.getModelEarningPeriods(earningPeriodId, excludeEarnings);
     }
 

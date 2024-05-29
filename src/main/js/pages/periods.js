@@ -1,11 +1,51 @@
 const React = require('react');
+import { useState } from 'react';
 const ReactDOM = require('react-dom');
 const { v4: uuidv4 } = require('uuid');
-import { useState } from 'react';
 import Nav from 'react-bootstrap/Nav';
+import Table from 'react-bootstrap/Table';
+import Button from 'react-bootstrap/Button';
 const client = require('../client');
 import { EarningPeriodListSelector } from '../components/earningperiodListSelector.js';
 
+/*
+
+  {
+    "id": "01a7bb9c-c976-4065-b43d-d64b58175f18",
+    "modelId": "8673d76c-9e9a-408c-847c-6af03c1b075c",
+    "modelName": "Monica Paulin Avendaño Caro",
+    "percentage": 65.0,
+    "modelEarnings": [
+
+    ]
+  },
+  {
+    "id": "4450ef31-d739-447e-beb3-4d13ff74a680",
+*/
+class ModelEarningPeriod extends React.Component {
+    render() {
+        const rows = this.props.modelearningperiods.map(mep =>
+                     <tr key={mep.id}>
+                        <td>{mep.modelName}</td>
+                        <td><input value={mep.percentage} onChange={(event)=>this.inputChangedHandler(mep, event)}/></td>
+                    </tr>
+                 );
+
+        return (
+            <Table striped bordered hover>
+                <thead>
+                    <tr>
+                        <th>Model name</th><th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows}
+                </tbody>
+            </Table>
+            );
+
+    }
+}
  /*
     id": "ee326114-8060-4b41-8679-2021745b4f78",
         "fromDate": "2024-05-13",
@@ -43,7 +83,7 @@ export class Periods extends React.Component {
 
     getModelEarningPeriods(periodId) {
         client({method: 'GET', path: '/api/modelearningperiods?excludeEarnings=true&earningPeriodId=' + periodId}).done(response => {
-            this.setState({selectedEarningPeriodId: periodId, modelearningperiods: response.entity });
+            this.setState({modelearningperiods: response.entity });
         });
     }
 
@@ -59,6 +99,13 @@ export class Periods extends React.Component {
         this.setState({selectedEarningPeriodId: periodId});
     }
 
+    generateNewPeriod(modelearningperiods) {
+        const newPeriod = { id: uuidv4(), fromDate: '', toDate: '', TRM: '', TRMDate: new Date() };
+        modelearningperiods.push(newPeriod);
+        this.setState({modelearningperiods: modelearningperiods, selectedEarningPeriodId: newPeriod.id});
+    }
+
+
     render() {
         return (
             <>
@@ -73,7 +120,9 @@ export class Periods extends React.Component {
 
                 <h1>Periods</h1>
                 <EarningPeriodListSelector earningperiods={this.state.earningperiods} value={this.state.selectedEarningPeriodId} onChange={this.handleEarningPeriodChange}/>
+                <Button variant="primary" onClick={() => this.generateNewPeriod(this.state.modelearningperiods)}>Generate new period</Button>
                 <EarningPeriod period={this.state.earningperiods.find(ep => ep.id == this.state.selectedEarningPeriodId)} />
+                <ModelEarningPeriod modelearningperiods={this.state.modelearningperiods}/>
             </>
         )
     }

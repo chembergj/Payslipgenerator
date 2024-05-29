@@ -31,7 +31,7 @@ public class EarningsRepository {
                 );
     }
 
-    public List<ModelEarningPeriodVO> getModelEarningPeriods(UUID earningPeriodId, Boolean excludeEarnings) {
+    public List<ModelEarningPeriodVO> getModelEarningPeriods(UUID earningPeriodId, boolean excludeEarnings) {
         var mapIdToModelEarningPeriods = jdbcTemplate.query(
                 "select mep.Id, mep.earningperiodId, mep.Percentage, mep.modelId, models.Name from modelearningperiods mep " +
                         "inner join models on mep.modelId = models.Id " +
@@ -47,7 +47,7 @@ public class EarningsRepository {
                 earningPeriodId
         ).stream().collect(Collectors.toMap(ModelEarningPeriodVO::id, Function.identity()));
 
-        if(excludeEarnings != null && !excludeEarnings.booleanValue()) {
+        if(!excludeEarnings) {
             var earnings = jdbcTemplate.query("select me.Id, ma.Id as modelAccountId, ma.Username, ma.Website, me.noOfUnits, mep.Id ModelEarningPeriodId from modelearningperiods mep " +
                             "inner join modelaccounts ma on mep.modelId=ma.modelsId " +
                             "left join modelearnings me on me.ModelAccountsId=ma.Id and me.ModelEarningPeriodId=mep.Id " +

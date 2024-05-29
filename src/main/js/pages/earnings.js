@@ -92,7 +92,7 @@ export class Earnings extends React.Component {
     }
 
     getModelEarningPeriods(periodId) {
-	    client({method: 'GET', path: '/api/modelearningperiods?earningPeriodId=' + periodId}).done(response => {
+	    client({method: 'GET', path: '/api/modelearningperiods?excludeEarnings=false&earningPeriodId=' + periodId}).done(response => {
             this.setState({selectedEarningPeriodId: periodId, modelearningperiods: this.addMissingModelEarningGuids(response.entity) });
         });
     }
