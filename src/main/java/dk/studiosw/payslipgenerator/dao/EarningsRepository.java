@@ -40,6 +40,7 @@ public class EarningsRepository {
                 (rs,rowNum) -> new ModelEarningPeriodVO(
                             Utils.UUIDOrNull(rs.getString("Id")),
                             Utils.UUIDOrNull(rs.getString("modelId")),
+                            Utils.UUIDOrNull(rs.getString("earningperiodId")),
                             rs.getString("Name"),
                             rs.getDouble("Percentage"),
                             new LinkedList<>()
@@ -90,5 +91,32 @@ public class EarningsRepository {
                             me.modelAccountId(),
                             me.noOfUnits(),
                             me.noOfUnits())));
+    }
+
+    public void insertOrUpdateModelEarningPeriods(List<ModelEarningPeriodVO> modelEarningPeriods) {
+        modelEarningPeriods.forEach(mep ->
+                    jdbcTemplate.update("INSERT INTO modelearningperiods (Id, earningperiodId, Percentage, modelId)  VALUES (?,?,?,?)"
+                                        + " ON DUPLICATE KEY UPDATE Percentage=?",
+                                mep.id(),
+                                mep.earningPeriodId(),
+                                mep.percentage(),
+                                mep.modelId(),
+                                mep.percentage()
+                            ));
+    }
+
+    public void insertOrUpdateEarningPeriod(EarningPeriodVO earningPeriodVO) {
+        jdbcTemplate.update("INSERT INTO earningperiods (Id, FromDate, ToDate, TRM, TRMDate)  VALUES (?,?,?,?,?)"
+                        + " ON DUPLICATE KEY UPDATE FromDate=?, ToDate=?, TRM=?, TRMDate=?",
+                earningPeriodVO.id(),
+                earningPeriodVO.fromDate(),
+                earningPeriodVO.toDate(),
+                earningPeriodVO.TRM(),
+                earningPeriodVO.TRMDate(),
+                earningPeriodVO.fromDate(),
+                earningPeriodVO.toDate(),
+                earningPeriodVO.TRM(),
+                earningPeriodVO.TRMDate()
+        );
     }
 }

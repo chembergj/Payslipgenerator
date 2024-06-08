@@ -112,7 +112,7 @@ export class Earnings extends React.Component {
 
     handleSaveClick(modelearningperiods) {
         var periods = this.state.modelearningperiods;
-         client({method: 'POST', path: '/api/modelearningperiods', entity: periods, headers: {'Content-Type': 'application/json'}}).done(response => {
+         client({method: 'POST', path: '/api/modelearnings', entity: periods, headers: {'Content-Type': 'application/json'}}).done(response => {
             document.getElementById("status").value = response.status.code + ": " + response.status.text;
                 });
     }

@@ -2,6 +2,7 @@ package dk.studiosw.payslipgenerator.dao;
 
 import dk.studiosw.payslipgenerator.PayslipgeneratorApplication;
 import dk.studiosw.payslipgenerator.TestConstants;
+import net.bytebuddy.asm.Advice;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -51,6 +53,37 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
     }
 
     @Test
+    public void testInsertOrUpdateEarningPeriodInserts() {
+
+        var origEarningperiods = repo.getEarningPeriods();
+        EarningPeriodVO newEarningPeriodVO = new EarningPeriodVO(UUID.randomUUID(), LocalDate.now().minusDays(1), LocalDate.now().plusDays(6), 99.0, LocalDate.now());
+        repo.insertOrUpdateEarningPeriod(newEarningPeriodVO);
+        var newEarningperiods = repo.getEarningPeriods();
+        assertEquals(origEarningperiods.size() + 1, newEarningperiods.size());
+        var returnedNewEarningPeriod = newEarningperiods.stream().filter(ep -> ep.id().equals(newEarningPeriodVO.id())).findFirst();
+        assertTrue(returnedNewEarningPeriod.isPresent());
+        assertEquals(returnedNewEarningPeriod.get(), newEarningPeriodVO);
+
+    }
+
+    @Test
+    public void testInsertOrUpdateEarningPeriodUpdates() {
+
+        var origEarningperiods = repo.getEarningPeriods();
+        var earningperiod = origEarningperiods.get(0);
+        repo.insertOrUpdateEarningPeriod(new EarningPeriodVO(
+                earningperiod.id(),
+                earningperiod.fromDate(),
+                earningperiod.toDate(),
+                earningperiod.TRM() + 10.0,
+                earningperiod.TRMDate()));
+
+        var newEarningPeriods = repo.getEarningPeriods();
+        assertEquals(origEarningperiods.size(), newEarningPeriods.size());
+        assertEquals(earningperiod.TRM() + 10.0, newEarningPeriods.stream().filter(ep -> ep.id().equals(earningperiod.id())).findFirst().get().TRM());
+    }
+
+    @Test
     public void testGetModelEarningPeriods() {
         var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), false);
         assertNotNull(modelEarningPeriods);
@@ -76,5 +109,25 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
         // ACT
         var newModelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), false);
         assertEquals(4711.0, newModelEarningPeriods.get(0).modelEarnings().get(0).noOfUnits());
+    }
+
+    @Test
+    public void insertOrUpdateModelEarningPeriods() {
+
+        // ARRANGE
+        var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), true);
+        int oldNoOfPeriods = modelEarningPeriods.size();
+        modelEarningPeriods.set(0, modelEarningPeriods.get(0).withPercentage(10));
+        var newMEP = new ModelEarningPeriodVO(UUID.randomUUID(), modelEarningPeriods.get(0).modelId(), modelEarningPeriods.get(0).earningPeriodId(),"Test", 44, List.of());
+        modelEarningPeriods.add(newMEP);
+
+        // ACT
+        repo.insertOrUpdateModelEarningPeriods(modelEarningPeriods);
+
+        // ASSERT
+        var newModelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), true);
+        assertEquals(oldNoOfPeriods + 1, newModelEarningPeriods.size());
+        assertEquals(10.0, newModelEarningPeriods.get(0).percentage());
+        assertEquals(44.0, newModelEarningPeriods.stream().filter(mep -> mep.id().equals(newMEP.id())).findFirst().get().percentage());
     }
 }

@@ -5,6 +5,9 @@ const { v4: uuidv4 } = require('uuid');
 import Nav from 'react-bootstrap/Nav';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 const client = require('../client');
 import { EarningPeriodListSelector } from '../components/earningperiodListSelector.js';
 
@@ -23,11 +26,17 @@ import { EarningPeriodListSelector } from '../components/earningperiodListSelect
     "id": "4450ef31-d739-447e-beb3-4d13ff74a680",
 */
 class ModelEarningPeriod extends React.Component {
+
+    percentageChangedHandler(modelearningperiod, event) {
+        modelearningperiod.percentage = event.target.value;
+        this.props.onModelEarningPeriodChanged(modelearningperiod);
+    }
+
     render() {
         const rows = this.props.modelearningperiods.map(mep =>
                      <tr key={mep.id}>
                         <td>{mep.modelName}</td>
-                        <td><input value={mep.percentage} onChange={(event)=>this.inputChangedHandler(mep, event)}/></td>
+                        <td><input value={mep.percentage} onChange={(event)=>this.percentageChangedHandler(mep, event)}/></td>
                     </tr>
                  );
 
@@ -54,6 +63,26 @@ class ModelEarningPeriod extends React.Component {
         "TRMDate": "2024-05-21"
         */
 class EarningPeriod extends React.Component {
+
+    fromDateChangedHandler(earningPeriod, event) {
+        earningPeriod.fromDate = event.target.value;
+        this.props.onEarningPeriodChanged(earningPeriod);
+    }
+
+    toDateChangedHandler(earningPeriod, event) {
+        earningPeriod.toDate = event.target.value;
+        this.props.onEarningPeriodChanged(earningPeriod);
+    }
+    TRMChangedHandler(earningPeriod, event) {
+        earningPeriod.TRM = event.target.value;
+        this.props.onEarningPeriodChanged(earningPeriod);
+    }
+
+    TRMDateChangedHandler(earningPeriod, event) {
+        earningPeriod.TRMDate = event.target.value;
+        this.props.onEarningPeriodChanged(earningPeriod);
+    }
+
     render() {
         const ep = this.props.period;
 
@@ -62,10 +91,10 @@ class EarningPeriod extends React.Component {
          return (
           <table>
              <tbody>
-                   <tr><td>From date:</td><td><input value={ep.fromDate} onChange={(event)=>this.inputChangedHandler(ep, event)}/></td></tr>
-                   <tr><td>To date:</td><td><input value={ep.toDate}/></td></tr>
-                   <tr><td>TRM:</td><td><input value={ep.TRM}/></td></tr>
-                   <tr><td>TRMDate:</td><td><input value={ep.TRMDate}/></td></tr>
+                   <tr><td>From date:</td><td><input value={ep.fromDate} onChange={(event)=>this.fromDateChangedHandler(ep, event)}/></td></tr>
+                   <tr><td>To date:</td><td><input value={ep.toDate} onChange={(event)=>this.toDateChangedHandler(ep, event)}/></td></tr>
+                   <tr><td>TRM:</td><td><input value={ep.TRM} onChange={(event)=>this.TRMChangedHandler(ep, event)}/></td></tr>
+                   <tr><td>TRMDate:</td><td><input value={ep.TRMDate} onChange={(event)=>this.TRMDateChangedHandler(ep, event)}/></td></tr>
                 </tbody>
              </table>
           );
@@ -78,7 +107,8 @@ export class Periods extends React.Component {
     constructor(props) {
 		super(props);
 		this.state = { earningperiods: [], modelearningperiods: [] };
-		this.handleEarningPeriodChange = this.handleEarningPeriodChange.bind(this);
+		this.handleSelectedEarningPeriodChange = this.handleSelectedEarningPeriodChange.bind(this);
+		this.handleEarningPeriodChanged = this.handleEarningPeriodChanged.bind(this);
 	}
 
     getModelEarningPeriods(periodId) {
@@ -94,15 +124,52 @@ export class Periods extends React.Component {
         });
     }
 
-    handleEarningPeriodChange(event) {
+    handleSelectedEarningPeriodChange(event) {
         const periodId = event.target.value;
         this.setState({selectedEarningPeriodId: periodId});
+        this.getModelEarningPeriods(periodId);
     }
 
-    generateNewPeriod(modelearningperiods) {
+
+    saveModelEarningPeriods(modelearningperiods) {
+         client({method: 'POST', path: '/api/modelearningperiods', entity: modelearningperiods, headers: {'Content-Type': 'application/json'}}).done(response => {
+            document.getElementById("status").value = "Saved!";
+        });
+    }
+
+    saveEarningPeriod(earningperiod, continuation) {
+         client({method: 'POST', path: '/api/earningperiod', entity: [earningperiod], headers: {'Content-Type': 'application/json'}}).done(response => {
+            continuation();
+        });
+    }
+
+    handleSaveClick() {
+
+        const earningperiod = this.state.earningperiods.find(ep => ep.id == this.state.selectedEarningPeriodId);
+        this.saveEarningPeriod(earningperiod, () => this.saveModelEarningPeriods(this.state.modelearningperiods));
+
+    }
+
+
+    generateNewPeriod(earningperiods) {
         const newPeriod = { id: uuidv4(), fromDate: '', toDate: '', TRM: '', TRMDate: new Date() };
-        modelearningperiods.push(newPeriod);
-        this.setState({modelearningperiods: modelearningperiods, selectedEarningPeriodId: newPeriod.id});
+        earningperiods.push(newPeriod);
+        const existingModelEarningPeriods = this.state.modelearningperiods;
+        const newModelEarningPeriods = existingModelEarningPeriods.map( oldMEP =>
+            ({ ...oldMEP, id: uuidv4(), modelEarnings: [] })
+        );
+        this.setState({earningperiods: earningperiods, selectedEarningPeriodId: newPeriod.id, modelearningperiods: newModelEarningPeriods});
+    }
+
+    handleEarningPeriodChanged(earningPeriod) {
+        var earningperiods = this.state.earningperiods.filter(ep => ep.id !== earningPeriod.id);
+        earningperiods.push(earningPeriod);
+        this.setState({earningperiods: earningperiods});
+    }
+
+    handleModelEarningPeriodChanged(modelearningperiod) {
+        var mepIndex = this.state.modelearningperiods.findIndex(mep => mep.id == modelearningperiod.id);
+        this.setState({modelearningperiods: this.state.modelearningperiods.with(mepIndex, modelearningperiod)});
     }
 
 
@@ -119,10 +186,32 @@ export class Periods extends React.Component {
                 </Nav>
 
                 <h1>Periods</h1>
-                <EarningPeriodListSelector earningperiods={this.state.earningperiods} value={this.state.selectedEarningPeriodId} onChange={this.handleEarningPeriodChange}/>
-                <Button variant="primary" onClick={() => this.generateNewPeriod(this.state.modelearningperiods)}>Generate new period</Button>
-                <EarningPeriod period={this.state.earningperiods.find(ep => ep.id == this.state.selectedEarningPeriodId)} />
-                <ModelEarningPeriod modelearningperiods={this.state.modelearningperiods}/>
+                <Container>
+                    <Row>
+                        <Col>
+                            <EarningPeriodListSelector earningperiods={this.state.earningperiods} value={this.state.selectedEarningPeriodId} onChange={this.handleSelectedEarningPeriodChange}/>
+                       </Col>
+                       <Col>
+                            <Button variant="primary" className="col-4" onClick={() => this.generateNewPeriod(this.state.earningperiods)}>Generate new period</Button>
+                        </Col>
+                    </Row>
+                    <Row className="align-items-center">
+                        <Col>
+                            <EarningPeriod period={this.state.earningperiods.find(ep => ep.id == this.state.selectedEarningPeriodId)} onEarningPeriodChanged={this.handleEarningPeriodChanged} />
+                        </Col>
+                        <Col>
+                            <Button variant="primary" className="col-3" onClick={() => this.handleSaveClick()}>Save</Button>
+                        </Col>
+                        <Col>
+                            <textarea id="status"/>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                        <ModelEarningPeriod modelearningperiods={this.state.modelearningperiods} onModelEarningPeriodChanged={this.handleEarningPeriodChanged}/>
+                        </Col>
+                    </Row>
+                </Container>
             </>
         )
     }

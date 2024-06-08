@@ -81,9 +81,22 @@ public class EarningsController {
         zos.close();
     }
 
+    @PostMapping(path = "api/modelearnings", consumes = MediaType.APPLICATION_JSON_VALUE)
+    String postModelEarnings(@RequestBody List<ModelEarningPeriodVO> periods) {
+        repo.insertOrUpdateModelEarnings(periods);
+        return "{\"status\": \"ok\"}";
+    }
+
     @PostMapping(path = "api/modelearningperiods", consumes = MediaType.APPLICATION_JSON_VALUE)
     String postModelEarningPeriods(@RequestBody List<ModelEarningPeriodVO> periods) {
-        repo.insertOrUpdateModelEarnings(periods);
-        return "{status: 'ok'}";
+        repo.insertOrUpdateModelEarningPeriods(periods);
+        return "{\"status\": \"ok\"}";
     }
+
+    @PostMapping(path = "api/earningperiod", consumes = MediaType.APPLICATION_JSON_VALUE)
+    String postEarningPeriods(@RequestBody List<EarningPeriodVO> earningperiods) {
+        earningperiods.forEach(ep -> repo.insertOrUpdateEarningPeriod(ep));
+        return "{\"status\": \"ok\"}";
+    }
+
 }
