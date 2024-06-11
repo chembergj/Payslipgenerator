@@ -109,6 +109,7 @@ export class Periods extends React.Component {
 		this.state = { earningperiods: [], modelearningperiods: [] };
 		this.handleSelectedEarningPeriodChange = this.handleSelectedEarningPeriodChange.bind(this);
 		this.handleEarningPeriodChanged = this.handleEarningPeriodChanged.bind(this);
+		this.saveModelEarningPeriods = this.saveModelEarningPeriods.bind(this);
 	}
 
     getModelEarningPeriods(periodId) {
@@ -137,16 +138,17 @@ export class Periods extends React.Component {
         });
     }
 
-    saveEarningPeriod(earningperiod, continuation) {
+    saveEarningPeriod(earningperiod, modelearningperiods) {
          client({method: 'POST', path: '/api/earningperiod', entity: [earningperiod], headers: {'Content-Type': 'application/json'}}).done(response => {
-            continuation();
+            this.saveModelEarningPeriods(modelearningperiods);
         });
     }
 
     handleSaveClick() {
 
-        const earningperiod = this.state.earningperiods.find(ep => ep.id == this.state.selectedEarningPeriodId);
-        this.saveEarningPeriod(earningperiod, () => this.saveModelEarningPeriods(this.state.modelearningperiods));
+        const activeEarningPeriodId = this.state.selectedEarningPeriodId;
+        const earningperiod = this.state.earningperiods.find(ep => ep.id == activeEarningPeriodId);
+        this.saveEarningPeriod(earningperiod, this.state.modelearningperiods);
 
     }
 
@@ -156,7 +158,7 @@ export class Periods extends React.Component {
         earningperiods.push(newPeriod);
         const existingModelEarningPeriods = this.state.modelearningperiods;
         const newModelEarningPeriods = existingModelEarningPeriods.map( oldMEP =>
-            ({ ...oldMEP, id: uuidv4(), modelEarnings: [] })
+            ({ ...oldMEP, id: uuidv4(), earningPeriodId: newPeriod.id, modelEarnings: [] })
         );
         this.setState({earningperiods: earningperiods, selectedEarningPeriodId: newPeriod.id, modelearningperiods: newModelEarningPeriods});
     }
