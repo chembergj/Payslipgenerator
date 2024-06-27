@@ -23,7 +23,7 @@ public class PayslipRepository {
                      return new PayslipVO(resultSet.getString("Name"),
                              resultSet.getDate("FromDate").toLocalDate(),
                              resultSet.getDate("ToDate").toLocalDate(),
-                             resultSet.getInt("Percentage"),
+                             resultSet.getDouble("Percentage"),
                              resultSet.getDouble("TRM"),
                              UUID.fromString(resultSet.getString("Id")),
                              resultSet.getDate("TRMDate").toLocalDate());

@@ -10,7 +10,7 @@ public class PayslipVO {
     private final String fullname;
     private final LocalDate fromDate;
     private final LocalDate toDate;
-    private final int percentage;
+    private final double percentage;
     private final double TRM;
     private final UUID modelEarningPeriodId;
 
@@ -18,7 +18,7 @@ public class PayslipVO {
 
     private final List<PayslipLineVO> lines;
 
-    public PayslipVO(String fullname, LocalDate fromDate, LocalDate toDate, int percentage, double TRM, UUID modelEarningPeriodId, LocalDate calculationDate) {
+    public PayslipVO(String fullname, LocalDate fromDate, LocalDate toDate, double percentage, double TRM, UUID modelEarningPeriodId, LocalDate calculationDate) {
         this.fullname = fullname;
         this.fromDate = fromDate;
         this.toDate = toDate;
@@ -54,7 +54,7 @@ public class PayslipVO {
         return toDate;
     }
 
-    public int getPercentage() {
+    public double getPercentage() {
         return percentage;
     }
 

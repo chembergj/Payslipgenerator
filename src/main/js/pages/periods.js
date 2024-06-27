@@ -32,13 +32,38 @@ class ModelEarningPeriod extends React.Component {
         this.props.onModelEarningPeriodChanged(modelearningperiod);
     }
 
+    modelEarningPeriodRemovedHandler(modelearningperiodId) {
+        this.props.onModelEarningPeriodRemoved(modelearningperiodId);
+    }
+
+    percentageChangedHandlerForNewPeriod(event) {
+        this.setState({TRMForNewPeriod: event.target.value});
+    }
+
+    onNewPeriodModelChange(event) {
+        this.setState({modelIdForNewPeriod: event.target.value});
+    }
+
+    onNewModelEarningPeriodAddedHandler(event) {
+        const newMEP = { id: uuidv4(), modelId: this.state.modelIdForNewPeriod, modelName: this.props.models.find(m => m.id == this.state.modelIdForNewPeriod).modelName, percentage: this.state.TRMForNewPeriod, modelEarnings: [] };
+        this.props.onModelEarningPeriodAdded(newMEP);
+    }
+
     render() {
         const rows = this.props.modelearningperiods.map(mep =>
                      <tr key={mep.id}>
                         <td>{mep.modelName}</td>
                         <td><input value={mep.percentage} onChange={(event)=>this.percentageChangedHandler(mep, event)}/></td>
+                        <td><Button className="col-8" variant="secondary"  onClick={() => this.modelEarningPeriodRemovedHandler(mep.id)}>Remove</Button></td>
+
                     </tr>
                  );
+        const modelIdsWithEarningPeriod = this.props.modelearningperiods.map(mep => mep.modelId);
+        const modelnameoptions = this.props.models
+            .filter(model => modelIdsWithEarningPeriod.findIndex(midWithPeriod => midWithPeriod == model.id ) == -1) // Only let use select model who doesn't already have an earningperiod
+            .map(model =>
+                <option key={model.id} value={model.id}>{model.name}</option>
+        )   ;
 
         return (
             <Table striped bordered hover>
@@ -49,6 +74,16 @@ class ModelEarningPeriod extends React.Component {
                 </thead>
                 <tbody>
                     {rows}
+                    <tr><td>
+                        <label htmlFor="modelnames">Add new earning period for:</label>
+                        <select name="modelnames" id="modelselector" value={this.props.value}  onChange={(event)=>this.onNewPeriodModelChange(event)}>
+                            {modelnameoptions}
+                        </select>
+                    </td>
+                    <td><input onChange={(event)=>this.percentageChangedHandlerForNewPeriod(event)}/></td>
+                    <td><Button className="col-8" variant="secondary"  onClick={(event)=>this.onNewModelEarningPeriodAddedHandler(event)}>Add</Button></td>
+
+                    </tr>
                 </tbody>
             </Table>
             );
@@ -106,15 +141,24 @@ export class Periods extends React.Component {
 
     constructor(props) {
 		super(props);
-		this.state = { earningperiods: [], modelearningperiods: [] };
+		this.state = { earningperiods: [], modelearningperiods: [], models: [] };
 		this.handleSelectedEarningPeriodChange = this.handleSelectedEarningPeriodChange.bind(this);
 		this.handleEarningPeriodChanged = this.handleEarningPeriodChanged.bind(this);
 		this.saveModelEarningPeriods = this.saveModelEarningPeriods.bind(this);
+		this.handleModelEarningPeriodRemoved = this.handleModelEarningPeriodRemoved.bind(this);
+
 	}
+
+    getActiveModels(periodId) {
+        client({method: 'GET', path: '/api/models?activeOnly=true'}).done(response => {
+            this.setState({models: response.entity });
+        });
+    }
 
     getModelEarningPeriods(periodId) {
         client({method: 'GET', path: '/api/modelearningperiods?excludeEarnings=true&earningPeriodId=' + periodId}).done(response => {
             this.setState({modelearningperiods: response.entity });
+            this.getActiveModels();
         });
     }
 
@@ -174,8 +218,19 @@ export class Periods extends React.Component {
         this.setState({modelearningperiods: this.state.modelearningperiods.with(mepIndex, modelearningperiod)});
     }
 
+    handleModelEarningPeriodRemoved(modelearningperiodId) {
+        this.setState({modelearningperiods: this.state.modelearningperiods.filter(mep => mep.id != modelearningperiodId)});
+    }
+
+    handleModelEarningPeriodAdded(newModelEarningPeriod) {
+        var meps = this.state.modelearningperiods;
+        meps.push(newModelEarningPeriod);
+        this.setState({modelearningperiods: meps});
+    }
+
 
     render() {
+
         return (
             <>
                 <Nav variant="tabs">
@@ -210,9 +265,15 @@ export class Periods extends React.Component {
                     </Row>
                     <Row>
                         <Col>
-                        <ModelEarningPeriod modelearningperiods={this.state.modelearningperiods} onModelEarningPeriodChanged={this.handleEarningPeriodChanged}/>
+                        <ModelEarningPeriod
+                            models={this.state.models}
+                            modelearningperiods={this.state.modelearningperiods}
+                            onModelEarningPeriodChanged={this.handleEarningPeriodChanged}
+                            onModelEarningPeriodRemoved={this.handleModelEarningPeriodRemoved}
+                            onModelEarningPeriodAdded={this.handleModelEarningPeriodAdded} />
                         </Col>
                     </Row>
+
                 </Container>
             </>
         )

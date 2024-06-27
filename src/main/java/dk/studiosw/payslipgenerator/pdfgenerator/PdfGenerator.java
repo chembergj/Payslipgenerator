@@ -74,7 +74,7 @@ public class PdfGenerator {
                 .addCell(new Paragraph("VALOR USD").setTextAlignment(TextAlignment.LEFT))
                 .addCell(Integer.valueOf(Double.valueOf(payslip.getTRM()).intValue()).toString()).setTextAlignment(TextAlignment.RIGHT)
                 .addCell(new Paragraph("PAGOS %:").setTextAlignment(TextAlignment.LEFT))
-                .addCell(String.format("%d", Integer.valueOf(payslip.getPercentage()))).setTextAlignment(TextAlignment.RIGHT);
+                .addCell(String.format("%.1f", payslip.getPercentage())).setTextAlignment(TextAlignment.RIGHT);
 
         // Lines
 
