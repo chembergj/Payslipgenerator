@@ -50,6 +50,25 @@ class PayslipRepositoryTest {
     }
 
     @Test
+    public void testGetPayslipWithSpecialTRM() {
+
+        PayslipVO payslip = repo.getPayslip(UUID.fromString("ff3c1e65-1463-4be4-baeb-eeffee2accb5"));
+
+        // ASSERT
+
+        assertNotNull(payslip);
+        // ACT
+
+        assertEquals(TestConstants.NAME_MODEL_WITH_CB_AND_SC, payslip.getFullname());
+        assertEquals(LocalDate.of(2024, 3, 1), payslip.getFromDate());
+        assertEquals(LocalDate.of(2024, 3, 10), payslip.getToDate());
+        assertEquals(65, payslip.getPercentage());
+        assertEquals(3333, payslip.getTRM());
+
+        assertEquals(1, payslip.getLines().size());
+    }
+
+    @Test
     void canGetModelEarningPeriodsWithEarnings() {
         var models = repo.getModelEarningPeriodsWithEarningsInPeriod(UUID.fromString("dac91a67-0c3b-43fd-8b0c-5e689a56133a"));
         assertEquals(2, models.size());

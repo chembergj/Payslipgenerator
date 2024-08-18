@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ public class EarningsRepository {
 
     public List<ModelEarningPeriodVO> getModelEarningPeriods(UUID earningPeriodId, boolean excludeEarnings) {
         var mapIdToModelEarningPeriods = jdbcTemplate.query(
-                "select mep.Id, mep.earningperiodId, mep.Percentage, mep.modelId, models.Name from modelearningperiods mep " +
+                "select mep.Id, mep.earningperiodId, mep.Percentage, mep.modelId, models.Name, mep.SpecialTRM from modelearningperiods mep " +
                         "inner join models on mep.modelId = models.Id " +
                         "where mep.earningPeriodId=? " +
                         "order by models.Name",
@@ -43,6 +44,7 @@ public class EarningsRepository {
                             Utils.UUIDOrNull(rs.getString("earningperiodId")),
                             rs.getString("Name"),
                             rs.getDouble("Percentage"),
+                            rs.getDouble("SpecialTRM") != 0 ? Optional.of(rs.getDouble("SpecialTRM")) : Optional.empty(),
                             new LinkedList<>()
                 ),
                 earningPeriodId
@@ -95,13 +97,15 @@ public class EarningsRepository {
 
     public void insertOrUpdateModelEarningPeriods(List<ModelEarningPeriodVO> modelEarningPeriods) {
         modelEarningPeriods.forEach(mep ->
-                    jdbcTemplate.update("INSERT INTO modelearningperiods (Id, earningperiodId, Percentage, modelId)  VALUES (?,?,?,?)"
-                                        + " ON DUPLICATE KEY UPDATE Percentage=?",
+                    jdbcTemplate.update("INSERT INTO modelearningperiods (Id, earningperiodId, Percentage, SpecialTRM, modelId)  VALUES (?,?,?,?,?)"
+                                        + " ON DUPLICATE KEY UPDATE Percentage=?, SpecialTRM=?",
                                 mep.id(),
                                 mep.earningPeriodId(),
                                 mep.percentage(),
+                                mep.specialTRM().orElse(null),
                                 mep.modelId(),
-                                mep.percentage()
+                                mep.percentage(),
+                                mep.specialTRM().orElse(null)
                             ));
     }
 

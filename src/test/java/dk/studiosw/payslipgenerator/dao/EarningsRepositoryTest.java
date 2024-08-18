@@ -1,8 +1,6 @@
 package dk.studiosw.payslipgenerator.dao;
 
 import dk.studiosw.payslipgenerator.PayslipgeneratorApplication;
-import dk.studiosw.payslipgenerator.TestConstants;
-import net.bytebuddy.asm.Advice;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +11,8 @@ import org.springframework.test.context.junit4.AbstractTransactionalJUnit4Spring
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,11 +42,11 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
         assertEquals(LocalDate.of(2024, 3, 11), earningperiods.get(0).fromDate());
         assertEquals(LocalDate.of(2024, 3, 18), earningperiods.get(0).toDate());
         assertEquals(3780, earningperiods.get(0).TRM());
-        assertEquals(LocalDate.of(2024, 3, 19), earningperiods.get(0).TRMDate());
+        assertEquals(LocalDate.of(2024, 3, 20), earningperiods.get(0).TRMDate());
 
         assertEquals(LocalDate.of(2024, 3, 1), earningperiods.get(1).fromDate());
         assertEquals(LocalDate.of(2024, 3, 10), earningperiods.get(1).toDate());
-        assertEquals(3690, earningperiods.get(1).TRM());
+        assertEquals(3560, earningperiods.get(1).TRM());
         assertEquals(LocalDate.of(2024, 3, 11), earningperiods.get(1).TRMDate());
     }
 
@@ -85,10 +83,12 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
 
     @Test
     public void testGetModelEarningPeriods() {
-        var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), false);
+        var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("dac91a67-0c3b-43fd-8b0c-5e689a56133a"), false);
         assertNotNull(modelEarningPeriods);
         assertEquals(2, modelEarningPeriods.size());
         assertEquals("Model with C4 only", modelEarningPeriods.get(0).modelName());
+        assertFalse(modelEarningPeriods.get(1).specialTRM().isPresent());
+        assertEquals(1111f, modelEarningPeriods.get(0).specialTRM().get());
         assertEquals("Model with CB and SC", modelEarningPeriods.get(1).modelName());
     }
 
@@ -118,7 +118,7 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
         var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), true);
         int oldNoOfPeriods = modelEarningPeriods.size();
         modelEarningPeriods.set(0, modelEarningPeriods.get(0).withPercentage(10));
-        var newMEP = new ModelEarningPeriodVO(UUID.randomUUID(), modelEarningPeriods.get(0).modelId(), modelEarningPeriods.get(0).earningPeriodId(),"Test", 44, List.of());
+        var newMEP = new ModelEarningPeriodVO(UUID.randomUUID(), modelEarningPeriods.get(0).modelId(), modelEarningPeriods.get(0).earningPeriodId(),"Test", 44, Optional.of((double)3232), List.of());
         modelEarningPeriods.add(newMEP);
 
         // ACT
@@ -127,7 +127,12 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
         // ASSERT
         var newModelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), true);
         assertEquals(oldNoOfPeriods + 1, newModelEarningPeriods.size());
-        assertEquals(10.0, newModelEarningPeriods.get(0).percentage());
-        assertEquals(44.0, newModelEarningPeriods.stream().filter(mep -> mep.id().equals(newMEP.id())).findFirst().get().percentage());
+
+        var newMEPFromDb = newModelEarningPeriods.stream().filter(mep -> mep.id().equals(newMEP.id())).findFirst().get();
+        var oldMEPFromDB = newModelEarningPeriods.stream().filter(mep -> !mep.id().equals(newMEP.id())).findFirst().get();
+
+        assertEquals(10.0, oldMEPFromDB.percentage());
+        assertEquals(44.0, newMEPFromDb.percentage());
+        assertEquals((double)3232, newMEPFromDb.specialTRM().get());
     }
 }

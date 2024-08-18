@@ -16,7 +16,7 @@ public class PayslipRepository {
     public PayslipVO getPayslip(UUID modelEarningPeriod) {
 
         var payslip = jdbcTemplate.queryForObject(
-                "select models.Name, ep.FromDate, ep.ToDate, ep.TRM, mep.Percentage, mep.Id, ep.TRMDate " +
+                "select models.Name, ep.FromDate, ep.ToDate, COALESCE(mep.SpecialTRM, ep.TRM) as TRM , mep.Percentage, mep.Id, ep.TRMDate " +
                         "from models inner join modelearningperiods mep on models.Id=mep.modelId " +
                         "inner join earningperiods ep on mep.earningperiodId = ep.Id " +
                         " where mep.Id = ?", (resultSet, rowNum) -> {

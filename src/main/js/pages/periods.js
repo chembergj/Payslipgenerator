@@ -32,6 +32,11 @@ class ModelEarningPeriod extends React.Component {
         this.props.onModelEarningPeriodChanged(modelearningperiod);
     }
 
+    specialTRMChangedHandler(modelearningperiod, event) {
+            modelearningperiod.specialTRM = event.target.value;
+            this.props.onModelEarningPeriodChanged(modelearningperiod);
+        }
+
     modelEarningPeriodRemovedHandler(modelearningperiodId) {
         this.props.onModelEarningPeriodRemoved(modelearningperiodId);
     }
@@ -54,6 +59,7 @@ class ModelEarningPeriod extends React.Component {
                      <tr key={mep.id}>
                         <td>{mep.modelName}</td>
                         <td><input value={mep.percentage} onChange={(event)=>this.percentageChangedHandler(mep, event)}/></td>
+                        <td><input value={mep.specialTRM} onChange={(event)=>this.specialTRMChangedHandler(mep, event)}/></td>
                         <td><Button className="col-8" variant="secondary"  onClick={() => this.modelEarningPeriodRemovedHandler(mep.id)}>Remove</Button></td>
 
                     </tr>
@@ -69,7 +75,7 @@ class ModelEarningPeriod extends React.Component {
             <Table striped bordered hover>
                 <thead>
                     <tr>
-                        <th>Model name</th><th>Percentage</th>
+                        <th>Model name</th><th>Percentage</th><th>Special TRM</th>
                     </tr>
                 </thead>
                 <tbody>
