@@ -37,12 +37,26 @@ class ModelEarningPeriod extends React.Component {
             this.props.onModelEarningPeriodChanged(modelearningperiod);
         }
 
+    hoursWorkedChangedHandler(modelearningperiod, event) {
+            modelearningperiod.hoursWorked = event.target.value;
+            this.props.onModelEarningPeriodChanged(modelearningperiod);
+        }
+
     modelEarningPeriodRemovedHandler(modelearningperiodId) {
         this.props.onModelEarningPeriodRemoved(modelearningperiodId);
     }
 
     percentageChangedHandlerForNewPeriod(event) {
+        this.setState({percentageForNewPeriod: event.target.value});
+    }
+
+
+    TRMChangedHandlerForNewPeriod(event) {
         this.setState({TRMForNewPeriod: event.target.value});
+    }
+
+    HoursWorkedChangedHandlerForNewPeriod(event) {
+       this.setState({HoursWorkedForNewPeriod: event.target.value});
     }
 
     onNewPeriodModelChange(event) {
@@ -50,7 +64,7 @@ class ModelEarningPeriod extends React.Component {
     }
 
     onNewModelEarningPeriodAddedHandler(event) {
-        const newMEP = { id: uuidv4(), modelId: this.state.modelIdForNewPeriod, modelName: this.props.models.find(m => m.id == this.state.modelIdForNewPeriod).modelName, percentage: this.state.TRMForNewPeriod, modelEarnings: [] };
+        const newMEP = { id: uuidv4(), modelId: this.state.modelIdForNewPeriod, modelName: this.props.models.find(m => m.id == this.state.modelIdForNewPeriod).modelName, percentage: this.state.percentageForNewPeriod, specialTRM: this.state.TRMForNewPeriod, hoursWorked: this.state.HoursWorkedForNewPeriod, modelEarnings: [] };
         this.props.onModelEarningPeriodAdded(newMEP);
     }
 
@@ -60,6 +74,7 @@ class ModelEarningPeriod extends React.Component {
                         <td>{mep.modelName}</td>
                         <td><input value={mep.percentage} onChange={(event)=>this.percentageChangedHandler(mep, event)}/></td>
                         <td><input value={mep.specialTRM} onChange={(event)=>this.specialTRMChangedHandler(mep, event)}/></td>
+                        <td><input value={mep.hoursWorked} onChange={(event)=>this.hoursWorkedChangedHandler(mep, event)}/></td>
                         <td><Button className="col-8" variant="secondary"  onClick={() => this.modelEarningPeriodRemovedHandler(mep.id)}>Remove</Button></td>
 
                     </tr>
@@ -75,7 +90,7 @@ class ModelEarningPeriod extends React.Component {
             <Table striped bordered hover>
                 <thead>
                     <tr>
-                        <th>Model name</th><th>Percentage</th><th>Special TRM</th>
+                        <th>Model name</th><th>Percentage</th><th>Special TRM</th><th>Hours worked</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -87,6 +102,9 @@ class ModelEarningPeriod extends React.Component {
                         </select>
                     </td>
                     <td><input onChange={(event)=>this.percentageChangedHandlerForNewPeriod(event)}/></td>
+                    <td><input onChange={(event)=>this.TRMChangedHandlerForNewPeriod(event)}/></td>
+                    <td><input onChange={(event)=>this.HoursWorkedChangedHandlerForNewPeriod(event)}/></td>
+
                     <td><Button className="col-8" variant="secondary"  onClick={(event)=>this.onNewModelEarningPeriodAddedHandler(event)}>Add</Button></td>
 
                     </tr>
@@ -152,7 +170,7 @@ export class Periods extends React.Component {
 		this.handleEarningPeriodChanged = this.handleEarningPeriodChanged.bind(this);
 		this.saveModelEarningPeriods = this.saveModelEarningPeriods.bind(this);
 		this.handleModelEarningPeriodRemoved = this.handleModelEarningPeriodRemoved.bind(this);
-
+        this.handleModelEarningPeriodAdded = this.handleModelEarningPeriodAdded.bind(this);
 	}
 
     getActiveModels(periodId) {

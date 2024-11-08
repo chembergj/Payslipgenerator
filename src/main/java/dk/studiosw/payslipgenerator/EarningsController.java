@@ -13,6 +13,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -44,7 +45,22 @@ public class EarningsController {
 
     @GetMapping("api/modelearningperiods")
     Collection<ModelEarningPeriodVO> getModelEarningPeriods(@RequestParam UUID earningPeriodId, @RequestParam(required = false, defaultValue  = "false") boolean excludeEarnings) {
-        return repo.getModelEarningPeriods(earningPeriodId, excludeEarnings);
+        var meps = repo.getModelEarningPeriods(earningPeriodId, excludeEarnings);
+        if(!excludeEarnings) {
+
+            // Read the generic lines and add them to the matching modelEarningPeriod
+            var lines = paysliprepo.getGenericlines(meps.stream().map(line -> line.id()).collect(Collectors.toList()));
+            for(var l: lines) {
+                var mepThatLineBelongsTo = meps.stream().filter(mep -> mep.id().equals(l.modelearningperiodId())).findFirst();
+                if(mepThatLineBelongsTo.isPresent()) {
+                    mepThatLineBelongsTo.get().payslipLines().add(l);
+                }
+            }
+            // When there are no lines, just make an empty list to avoid errors
+            meps = meps.stream().map(mep-> mep.payslipLines() != null ? mep : mep.withPayslipLines(new ArrayList<>())).collect(Collectors.toList());
+        }
+
+        return meps;
     }
 
     @GetMapping(value = "api/pdf")

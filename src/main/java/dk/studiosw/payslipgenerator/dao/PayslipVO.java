@@ -14,11 +14,14 @@ public class PayslipVO {
     private final double TRM;
     private final UUID modelEarningPeriodId;
 
+    private final double hoursWorked;
     private final LocalDate calculationDate;
 
-    private final List<PayslipLineVO> lines;
+    private final List<PayslipIncomeLineVO> lines;
 
-    public PayslipVO(String fullname, LocalDate fromDate, LocalDate toDate, double percentage, double TRM, UUID modelEarningPeriodId, LocalDate calculationDate) {
+    private final List<PayslipGenericLineVO> genericLines;
+
+    public PayslipVO(String fullname, LocalDate fromDate, LocalDate toDate, double percentage, double TRM, UUID modelEarningPeriodId, LocalDate calculationDate, double hoursWorked) {
         this.fullname = fullname;
         this.fromDate = fromDate;
         this.toDate = toDate;
@@ -26,21 +29,36 @@ public class PayslipVO {
         this.TRM = TRM;
         this.modelEarningPeriodId = modelEarningPeriodId;
         this.calculationDate = calculationDate;
+        this.hoursWorked = hoursWorked;
 
         lines = new ArrayList<>();
+        genericLines = new ArrayList<>();
     }
 
-    public List<PayslipLineVO> getLines() {
+    public List<PayslipIncomeLineVO> getLines() {
         return lines;
     }
 
-    public void addLine(PayslipLineVO line) {
+    public List<PayslipGenericLineVO> getGenericLines() {
+        return genericLines;
+    }
+
+    public void addLine(PayslipIncomeLineVO line) {
         this.lines.add(line);
     }
 
-    public void addAllLines(Collection<PayslipLineVO> lines) {
+    public void addLine(PayslipGenericLineVO line) {
+        this.genericLines.add(line);
+    }
+
+    public void addAllLines(Collection<PayslipIncomeLineVO> lines) {
         this.lines.addAll(lines);
     }
+
+    public void addAllGenericLines(Collection<PayslipGenericLineVO> lines) {
+        this.genericLines.addAll(lines);
+    }
+
 
     public String getFullname() {
         return fullname;
@@ -61,6 +79,8 @@ public class PayslipVO {
     public double getTRM() {
         return TRM;
     }
+
+    public double getHoursWorked() { return hoursWorked; }
 
     public UUID getModelEarningPeriodId() {
         return modelEarningPeriodId;

@@ -118,7 +118,7 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
         var modelEarningPeriods = repo.getModelEarningPeriods(UUID.fromString("2dc79111-a093-493f-bd23-ab8a1003a95e"), true);
         int oldNoOfPeriods = modelEarningPeriods.size();
         modelEarningPeriods.set(0, modelEarningPeriods.get(0).withPercentage(10));
-        var newMEP = new ModelEarningPeriodVO(UUID.randomUUID(), modelEarningPeriods.get(0).modelId(), modelEarningPeriods.get(0).earningPeriodId(),"Test", 44, Optional.of((double)3232), List.of());
+        var newMEP = new ModelEarningPeriodVO(UUID.randomUUID(), modelEarningPeriods.get(0).modelId(), modelEarningPeriods.get(0).earningPeriodId(),"Test", 44, Optional.of((double)3232), Optional.of((double)30.5), List.of(), List.of());
         modelEarningPeriods.add(newMEP);
 
         // ACT
@@ -134,5 +134,6 @@ class EarningsRepositoryTest extends AbstractTransactionalJUnit4SpringContextTes
         assertEquals(10.0, oldMEPFromDB.percentage());
         assertEquals(44.0, newMEPFromDb.percentage());
         assertEquals((double)3232, newMEPFromDb.specialTRM().get());
+        assertEquals((double)30.5, newMEPFromDb.hoursWorked().get());
     }
 }

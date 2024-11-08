@@ -1,7 +1,8 @@
 package dk.studiosw.payslipgenerator.pdf;
 
 import dk.studiosw.payslipgenerator.PayslipgeneratorApplication;
-import dk.studiosw.payslipgenerator.dao.PayslipLineVO;
+import dk.studiosw.payslipgenerator.dao.PayslipGenericLineVO;
+import dk.studiosw.payslipgenerator.dao.PayslipIncomeLineVO;
 import dk.studiosw.payslipgenerator.dao.PayslipVO;
 import dk.studiosw.payslipgenerator.dao.Website;
 import dk.studiosw.payslipgenerator.pdfgenerator.PdfGenerator;
@@ -28,10 +29,12 @@ class PdfGeneratorTest {
                 65,
                 3545,
                 null,
-                LocalDate.now());
+                LocalDate.now(),
+                30.5);
 
-        payslip.addLine(new PayslipLineVO(Website.Chaturbate, 3437));
-        payslip.addLine(new PayslipLineVO(Website.Cam4, 310));
+        payslip.addLine(new PayslipIncomeLineVO(Website.Chaturbate, 3437));
+        payslip.addLine(new PayslipIncomeLineVO(Website.Cam4, 310));
+        payslip.addLine(new PayslipGenericLineVO(null, "some text", 99.99, null));
         pdfGenerator.generate("test.pdf", payslip);
 
     }

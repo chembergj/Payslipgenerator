@@ -59,14 +59,17 @@ public class PdfGenerator {
         Table table = new Table(UnitValue.createPercentArray(new float[] {15f, 35f, 20f, 20f, 10f})).useAllAvailableWidth();
 
         // Headers
-        table.addCell(new Cell(2, 1).add(new Paragraph("NOMBRE:")).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.LEFT))
-                .addCell(new Cell(2, 1).add(new Paragraph(payslip.getFullname())).setTextAlignment(TextAlignment.CENTER).setVerticalAlignment(VerticalAlignment.MIDDLE))
+        table.addCell(new Cell(3, 1).add(new Paragraph("NOMBRE:")).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.LEFT))
+                .addCell(new Cell(3, 1).add(new Paragraph(payslip.getFullname())).setTextAlignment(TextAlignment.CENTER).setVerticalAlignment(VerticalAlignment.MIDDLE))
                 .addCell(new Paragraph("FECHA:").setTextAlignment(TextAlignment.LEFT))
                 .addCell(new Paragraph(payslip.getCalculationDate().format(dateFormatter)).setTextAlignment(TextAlignment.LEFT))
                 .addCell("")
 
                 .addCell(new Paragraph("PERIODO:").setTextAlignment(TextAlignment.LEFT))
                 .addCell(new Cell(1, 2).add(new Paragraph(payslip.getFromDate().format(dateFormatter) + "-" + payslip.getToDate().format(dateFormatter))).setTextAlignment(TextAlignment.LEFT))
+
+                .addCell(new Paragraph("HORAS:").setTextAlignment(TextAlignment.LEFT))
+                .addCell(new Cell(1, 2).add(new Paragraph(payslip.getHoursWorked() == 0 ? "" : String.format("%.1f", payslip.getHoursWorked()) + " (" + String.format("%.1f", payslip.getHoursWorked() - 36.0) + ")")).setTextAlignment(TextAlignment.LEFT))
 
                 .addCell(new Cell(2, 1).add(new Paragraph("PAGINAS")).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.LEFT))
                 .addCell(new Cell(2, 1).add(new Paragraph("TOKENS")).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.LEFT))
@@ -89,6 +92,19 @@ public class PdfGenerator {
 
             totalModelPayment += modelPayment;
         }
+
+        // Generic lines
+        for(var line: payslip.getGenericLines())  {
+            table
+                    .addCell(new Paragraph(line.text()).setTextAlignment(TextAlignment.LEFT))
+                    .addCell("")
+                    .addCell(paymentFormatter.format(line.amount()))
+                    .addCell("")
+                    .addCell("");
+
+            totalModelPayment += line.amount();
+        }
+
 
         // Empty row
         table.addCell(" ").addCell("").addCell("").addCell("").addCell(new Cell().setHeight(10));

@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,8 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PayslipgeneratorApplication.class)
 @TestPropertySource(locations="classpath:test.properties")
-class PayslipRepositoryTest {
+class PayslipRepositoryTest extends AbstractTransactionalJUnit4SpringContextTests {
 
+    public static final UUID MODEL_EARNING_PERIOD = UUID.fromString("d9eeca3f-81d6-49d3-98cd-25d026cca33b");
     @Autowired
     PayslipRepository repo;
 
@@ -72,5 +75,34 @@ class PayslipRepositoryTest {
     void canGetModelEarningPeriodsWithEarnings() {
         var models = repo.getModelEarningPeriodsWithEarningsInPeriod(UUID.fromString("dac91a67-0c3b-43fd-8b0c-5e689a56133a"));
         assertEquals(2, models.size());
+    }
+
+
+    @Test
+    void canInsertPayslipLines() {
+
+        // ARRANGE/ACT
+        repo.insertOrUpdateGenericPayslipLines(List.of(new PayslipGenericLineVO(UUID.randomUUID(), "textline", 99.99, MODEL_EARNING_PERIOD)));
+
+        // ASSERT
+        var payslip = repo.getPayslip(MODEL_EARNING_PERIOD);
+        assertEquals(1, payslip.getGenericLines().size());
+        assertEquals("textline", payslip.getGenericLines().get(0).text());
+        assertEquals(99.99, payslip.getGenericLines().get(0).amount());
+    }
+
+    @Test
+    void canUpdatePayslipLines() {
+
+        // ARRANGE/ACT
+        PayslipGenericLineVO payslipline = new PayslipGenericLineVO(UUID.randomUUID(), "textline", 99.99, UUID.fromString("d9eeca3f-81d6-49d3-98cd-25d026cca33b"));
+        repo.insertOrUpdateGenericPayslipLines(List.of(payslipline));
+        repo.insertOrUpdateGenericPayslipLines(List.of(new PayslipGenericLineVO(payslipline.Id(), "updated textline", 88.88, payslipline.modelearningperiodId())));
+
+        // ASSERT
+        var payslip = repo.getPayslip(MODEL_EARNING_PERIOD);
+        assertEquals(1, payslip.getGenericLines().size());
+        assertEquals("updated textline", payslip.getGenericLines().get(0).text());
+        assertEquals(88.88, payslip.getGenericLines().get(0).amount());
     }
 }

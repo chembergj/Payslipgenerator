@@ -34,7 +34,7 @@ public class EarningsRepository {
 
     public List<ModelEarningPeriodVO> getModelEarningPeriods(UUID earningPeriodId, boolean excludeEarnings) {
         var mapIdToModelEarningPeriods = jdbcTemplate.query(
-                "select mep.Id, mep.earningperiodId, mep.Percentage, mep.modelId, models.Name, mep.SpecialTRM from modelearningperiods mep " +
+                "select mep.Id, mep.earningperiodId, mep.Percentage, mep.modelId, models.Name, mep.SpecialTRM, mep.HoursWorked from modelearningperiods mep " +
                         "inner join models on mep.modelId = models.Id " +
                         "where mep.earningPeriodId=? " +
                         "order by models.Name",
@@ -45,6 +45,8 @@ public class EarningsRepository {
                             rs.getString("Name"),
                             rs.getDouble("Percentage"),
                             rs.getDouble("SpecialTRM") != 0 ? Optional.of(rs.getDouble("SpecialTRM")) : Optional.empty(),
+                            rs.getDouble("HoursWorked") != 0 ? Optional.of(rs.getDouble("HoursWorked")) : Optional.empty(),
+                        new LinkedList<>(),
                             new LinkedList<>()
                 ),
                 earningPeriodId
@@ -64,6 +66,7 @@ public class EarningsRepository {
                             rs.getDouble("noOfUnits"),
                             Utils.UUIDOrNull(rs.getString("ModelEarningPeriodId"))), earningPeriodId);
             earnings.forEach(e -> mapIdToModelEarningPeriods.get(e.modelEarningPeriodId()).modelEarnings().add(e));
+
         }
 
         return new LinkedList<>(mapIdToModelEarningPeriods.values());
@@ -97,15 +100,17 @@ public class EarningsRepository {
 
     public void insertOrUpdateModelEarningPeriods(List<ModelEarningPeriodVO> modelEarningPeriods) {
         modelEarningPeriods.forEach(mep ->
-                    jdbcTemplate.update("INSERT INTO modelearningperiods (Id, earningperiodId, Percentage, SpecialTRM, modelId)  VALUES (?,?,?,?,?)"
-                                        + " ON DUPLICATE KEY UPDATE Percentage=?, SpecialTRM=?",
+                    jdbcTemplate.update("INSERT INTO modelearningperiods (Id, earningperiodId, Percentage, SpecialTRM, HoursWorked, modelId)  VALUES (?,?,?,?,?,?)"
+                                        + " ON DUPLICATE KEY UPDATE Percentage=?, SpecialTRM=?, HoursWorked=?",
                                 mep.id(),
                                 mep.earningPeriodId(),
                                 mep.percentage(),
                                 mep.specialTRM().orElse(null),
+                                mep.hoursWorked().orElse(null),
                                 mep.modelId(),
                                 mep.percentage(),
-                                mep.specialTRM().orElse(null)
+                                mep.specialTRM().orElse(null),
+                                mep.hoursWorked().orElse(null)
                             ));
     }
 

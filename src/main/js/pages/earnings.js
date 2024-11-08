@@ -28,7 +28,18 @@ class ModelEarningPeriodTable extends React.Component{
             const remainingColumns = noOfColumns - mep.modelEarnings.length * 3;
             return (
                 <React.Fragment key={index}>
-                    <tr id={mep.id}><td colSpan={noOfColumns}>{mep.modelName}&nbsp;{mep.percentage}%<input name={"mep_" + index} type="hidden" value={mep.id}/></td></tr>
+                    <tr id={mep.id}><td colSpan={noOfColumns}>{mep.modelName}&nbsp;{mep.percentage}%<input name={"mep_" + index} type="hidden" value={mep.id}/>
+
+                        <input type="button" onClick={() => this.props.onAddLine(this.props.modelearningperiods, mep)} value="Add line"/>
+                    </td></tr>
+
+
+                     {
+                        mep.payslipLines.map(l => (
+                            <PayslipGenericLine line={l} modelearningperiods={this.props.modelearningperiods} modelearningperiod={mep} onGenericLineInputChanged={this.props.onGenericLineInputChanged}  />
+                        ))
+                    }
+
                      <tr>
                         {mep.modelEarnings.sort((a, b) => a.website > b.website ? 1 : -1).map((me, meIndex) => (
                             <React.Fragment key={me.id}>
@@ -54,7 +65,51 @@ class ModelEarningPeriodTable extends React.Component{
 }
 
 
+class PayslipGenericLine extends React.Component{
 
+
+    genericLineInputTextChangedHandler = (modelearningperiods, modelEarningPeriod, line, event) => {
+
+      const originalModelEarningPeriod = modelearningperiods.find(mep => mep.id == modelEarningPeriod.id);
+        var originalLine = originalModelEarningPeriod.payslipLines.find(l => l.id == line.id);
+        var changedLine = {...originalLine, text: event.target.value};
+        var indexOfLine = originalModelEarningPeriod.payslipLines.findIndex(l => l.id == line.id);
+        var changedModelEarningPeriod = {...originalModelEarningPeriod, payslipLines: originalModelEarningPeriod.payslipLines.with(indexOfLine, changedLine)};
+
+        // TODO: maybe cheating here - maybe values have to be immutable, so dont just change one line
+      const indexOfModelEarningPeriodToChange = modelearningperiods.findIndex(mep => mep.id === originalModelEarningPeriod.id);
+      const changedModelEarningPeriods = modelearningperiods.with(indexOfModelEarningPeriodToChange, changedModelEarningPeriod);
+
+      this.props.onGenericLineInputChanged(modelearningperiods);
+  }
+
+    genericLineInputAmountChangedHandler = (modelearningperiods, modelEarningPeriod, line, event) => {
+
+      const originalModelEarningPeriod = modelearningperiods.find(mep => mep.id == modelEarningPeriod.id);
+        var originalLine = originalModelEarningPeriod.payslipLines.find(l => l.id == line.id);
+        var changedLine = {...changedline, amount: event.target.value};
+        var indexOfLine = originalModelEarningPeriod.payslipLines.findIndex(l => l.id == line.id);
+        var changedModelEarningPeriod = {...originalModelEarningPeriod, payslipLines: originalModelEarningPeriod.payslipLines.with(indexOfLine, changedLine)};
+
+        // TODO: maybe cheating here - maybe values have to be immutable, so dont just change one line
+      const indexOfModelEarningPeriodToChange = modelearningperiods.findIndex(mep => mep.id === originalModelEarningPeriod.id);
+      const changedModelEarningPeriods = modelearningperiods.with(indexOfModelEarningPeriodToChange, changedModelEarningPeriod);
+
+      this.props.onGenericLineInputChanged(modelearningperiods);
+  }
+
+
+    render() {
+        return (
+            <React.Fragment key={this.props.line.id}>
+                <tr>
+                    <td>Text:</td><td><input value={this.props.line.text} onChange={(event)=>this.genericLineInputTextChangedHandler(this.props.modelearningperiods, this.props.modelearningperiod, this.props.line, event)}/></td>
+                    <td>Amount:</td><td><input value={this.props.line.amount} onChange={(event)=>this.genericLineInputAmountChangedHandler(this.props.modelearningperiods, this.props.modelearningperiod, this.props.line, event)}/></td>
+                </tr>
+            </React.Fragment>
+        )
+    }
+ }
 
 class ModelEarningLine extends React.Component{
 	render() {
@@ -75,6 +130,8 @@ export class Earnings extends React.Component {
 		this.state = { earningperiods: [], modelearningperiods: [] };
 		this.handleEarningPeriodChange = this.handleEarningPeriodChange.bind(this);
 		this.handleEarningChanged = this.handleEarningChanged.bind(this);
+		this.handleAddLine = this.handleAddLine.bind(this);
+		this.handleGenericLineChanged = this.handleGenericLineChanged.bind(this);
 	}
 
 
@@ -126,6 +183,15 @@ export class Earnings extends React.Component {
         this.setState({modelearningperiods: modelearningperiods});
     }
 
+    handleGenericLineChanged(modelearningperiods) {
+        this.setState({modelearningperiods: modelearningperiods});
+    }
+
+    handleAddLine(modelearningperiods, modelearningperiod) {
+        modelearningperiod.payslipLines.push({ Id: uuidv4(), modelearningperiodId: modelearningperiod.Id });
+        this.setState({modelearningperiods: modelearningperiods});
+    }
+
     render() {
             return (
                 <>
@@ -140,7 +206,7 @@ export class Earnings extends React.Component {
 
                     <h1>Earnings</h1>
                     <EarningPeriodListSelector earningperiods={this.state.earningperiods} value={this.state.selectedEarningPeriodId} onChange={this.handleEarningPeriodChange}/>
-                    <ModelEarningPeriodTable modelearningperiods={this.state.modelearningperiods}  onEarningChanged={this.handleEarningChanged}  />
+                    <ModelEarningPeriodTable modelearningperiods={this.state.modelearningperiods}  onEarningChanged={this.handleEarningChanged} onAddLine={this.handleAddLine}  onGenericLineInputChanged={this.handleGenericLineChanged} />
                     <input type="button" onClick={() => this.handleSaveClick(this.state.modelearningperiods)} value="Save"/>
                     <textarea id="status"/>
                     <input type="button" onClick={() => this.handleGetAsPDFClick(this.state.modelearningperiods)} value="Get PDF"/>
