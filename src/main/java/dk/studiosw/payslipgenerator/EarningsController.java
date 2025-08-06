@@ -76,19 +76,21 @@ public class EarningsController {
         modelEarningPeriods.forEach(mep -> {
             try {
                 var payslip = paysliprepo.getPayslip(mep);
-                var bos = new ByteArrayOutputStream();
+                if(payslip.hasNonezeroIncome()) {
+                    var bos = new ByteArrayOutputStream();
 
-                pdfGenerator.generate(bos, payslip);
-                zos.putNextEntry(new ZipEntry(payslip.getFullname() + ".pdf"));
+                    pdfGenerator.generate(bos, payslip);
+                    zos.putNextEntry(new ZipEntry(payslip.getFullname() + ".pdf"));
 
-                int length;
+                    int length;
 
-                var bis = new ByteArrayInputStream(bos.toByteArray());
-                while ((length = bis.read(buffer)) > 0) {
-                    zos.write(buffer, 0, length);
+                    var bis = new ByteArrayInputStream(bos.toByteArray());
+                    while ((length = bis.read(buffer)) > 0) {
+                        zos.write(buffer, 0, length);
+                    }
+                    zos.closeEntry();
+                    bis.close();
                 }
-                zos.closeEntry();
-                bis.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

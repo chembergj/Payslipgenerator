@@ -9,7 +9,9 @@ public enum Website {
     LiveJasmin("LJ"),
     CamSoda("CS"),
     Stripchat("SC"),
-    Onlyfans("OF");
+    Onlyfans("OF"),
+
+    XLove("XL");
 
     private final String dbName;
 

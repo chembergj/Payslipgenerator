@@ -27,8 +27,8 @@ class ModelEarningPeriodTable extends React.Component{
         const modelearningperiodRows = this.props.modelearningperiods.map((mep, index) => {
             const remainingColumns = noOfColumns - mep.modelEarnings.length * 3;
             return (
-                <React.Fragment key={index}>
-                    <tr id={mep.id}><td colSpan={noOfColumns}>{mep.modelName}&nbsp;{mep.percentage}%<input name={"mep_" + index} type="hidden" value={mep.id}/>
+                <React.Fragment  key={index}>
+                    <tr  id={mep.id}><td colSpan={noOfColumns}><p class="list-group-item-heading">{mep.modelName}&nbsp;{mep.percentage}%</p><input name={"mep_" + index} type="hidden" value={mep.id}/>
 
                         <input type="button" onClick={() => this.props.onAddLine(this.props.modelearningperiods, mep)} value="Add line"/>
                     </td></tr>
@@ -57,7 +57,9 @@ class ModelEarningPeriodTable extends React.Component{
         return (
             <table>
                 <tbody>
-                    {modelearningperiodRows}
+                    <div class="list-group">
+                        {modelearningperiodRows}
+                    </div>
                 </tbody>
             </table>
         )
@@ -87,7 +89,7 @@ class PayslipGenericLine extends React.Component{
 
       const originalModelEarningPeriod = modelearningperiods.find(mep => mep.id == modelEarningPeriod.id);
         var originalLine = originalModelEarningPeriod.payslipLines.find(l => l.id == line.id);
-        var changedLine = {...changedline, amount: event.target.value};
+        var changedLine = {...originalLine, amount: event.target.value};
         var indexOfLine = originalModelEarningPeriod.payslipLines.findIndex(l => l.id == line.id);
         var changedModelEarningPeriod = {...originalModelEarningPeriod, payslipLines: originalModelEarningPeriod.payslipLines.with(indexOfLine, changedLine)};
 

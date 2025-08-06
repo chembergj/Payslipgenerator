@@ -39,6 +39,10 @@ public class PayslipVO {
         return lines;
     }
 
+    public boolean hasNonezeroIncome() {
+        return lines.stream().anyMatch(l -> l.tokens() != 0);
+    }
+
     public List<PayslipGenericLineVO> getGenericLines() {
         return genericLines;
     }
